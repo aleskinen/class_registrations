@@ -1,0 +1,57 @@
+https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Server-side/Django/skeleton_website
+django-locallibrary-tutorial=class_registrations
+locallibrary=registration,
+catalog=event
+
+mkdir class_registrations
+cd class_registrations/
+python3 -m venv venv
+source ./venv/bin/activate
+python3 -m pip install django~=5.2
+django-admin startproject registrations
+python3 manage.py startapp events
+cd registrations/
+nano registrations/settings.py
+	TIME_ZONE = 'Europe/Helsinki'
+	...
+    # Add our new application
+    'event.apps.EventConfig', # This object was created for us in /event/apps.py
+	
+nano registrations/urls.py
+	# Use include() to add paths from the catalog application
+	from django.urls import include
+	urlpatterns += [
+		path('event/', include('event.urls')),
+	]
+	# Add URL maps to redirect the base URL to our application
+	from django.views.generic import RedirectView
+	urlpatterns += [
+		path('', RedirectView.as_view(url='event/', permanent=True)),
+	]
+	# Use static() to add URL mapping to serve static files during development (only)
+	from django.conf import settings
+	from django.conf.urls.static import static
+	urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
+
+cd events
+nano urls.py
+	from django.urls import path
+	from . import views
+	urlpatterns = [
+	]
+
+
+registrations/
+	manage.py
+	events
+		admin.py
+		apps.py
+		migrations
+		models.py
+		tests.py
+		views.py
+	registrations/
+		asgi.py
+		settings.py
+		urls.py
+		wsgi.py
