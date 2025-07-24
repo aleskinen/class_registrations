@@ -1,0 +1,19 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+    <h1>My events</h1>
+
+    {% if eventinstance_list %}
+    <ul>
+
+      {% for eventinst in eventinstance_list %}
+      <li class="{% if eventinst.is_past %}text-danger{% endif %}">
+        <a href="{% url 'Event-detail' eventinst.event.pk %}">{{ eventinst.event.title }}</a> ({{ eventinst.date }})
+      </li>
+      {% endfor %}
+    </ul>
+
+    {% else %}
+      <p>You have no events.</p>
+    {% endif %}
+{% endblock %}

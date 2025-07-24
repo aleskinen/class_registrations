@@ -1,0 +1,16 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Contact List</h1>
+  {% if contact_list %}
+    <ul>
+      {% for contact in contact_list %}
+      <li>
+        <a href="{{ contact.get_absolute_url }}">{{ contact.last_name }}, {{ contact.first_name }}</a>
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>There are no contacts in the library.</p>
+  {% endif %}
+{% endblock %}

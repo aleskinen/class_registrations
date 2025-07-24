@@ -1,0 +1,25 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Name: {{ contact.last_name }}, {{ contact.first_name }}</h1>
+
+  <p><strong>Contact:</strong> <a href="">{{ contact }}</a></p>
+  <p><strong>Email:</strong> {{ contact.email }}</p>
+  <p><strong>Phone:</strong> {{ contact.phone }}</p>
+
+  <div style="margin-left:20px;margin-top:20px">
+    <h4>Events</h4>
+  
+    {% if contact.event_set.all %}
+      <ul>
+        {% for event in contact.event_set.all %}
+          <li>
+            <a href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No events associated with this contact.</p>
+    {% endif %}
+  </div>
+{% endblock %}

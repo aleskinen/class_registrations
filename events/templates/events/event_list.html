@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Event List</h1>
+  {% if event_list %}
+    <ul>
+      {% for event in event_list %}
+      <li>
+        <a href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+        ({{event.contact}})
+      </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>There are no events in the library.</p>
+  {% endif %}
+{% endblock %}

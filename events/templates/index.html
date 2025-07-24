@@ -1,0 +1,29 @@
+{% extends "base_generic.html" %}
+
+<!-- Add additional CSS in static file -->
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}" />
+
+
+{% block content %}
+<img
+  src="{% static 'images/logo.png' %}"
+  alt="Logo"
+  style="width:55px;height:40px;" />
+  <h1>Course registrations</h1>
+  <p>
+    Welcome to course registrations, a website developed by
+    <em>SärmääTanssiin</em>!
+  </p>
+  <h2>Coursees</h2>
+  <p>The registry has the following record counts:</p>
+  <ul>
+    <li><strong>Events:</strong> {{ num_events }}</li>
+    <li><strong>Courses:</strong> {{ num_instances }}</li>
+    <li><strong>Active courses:</strong> {{ num_instances_available }}</li>
+    <li><strong>Contacts:</strong> {{ num_contacts }}</li>
+  </ul>
+  <p>
+    You have visited this page {{ num_visits }} time{{ num_visits|pluralize }}.
+  </p>
+{% endblock %}
