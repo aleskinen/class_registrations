@@ -3,10 +3,33 @@
 {% block content %}
   <h1>Contact List</h1>
   {% if contact_list %}
-    <ul>
+    <ul class="list-unstyled">
       {% for contact in contact_list %}
-      <li>
-        <a href="{{ contact.get_absolute_url }}">{{ contact.last_name }}, {{ contact.first_name }}</a>
+      <li class="mb-3">
+        <div>
+          <a href="{{ contact.get_absolute_url }}"><strong>{{ contact.last_name }}, {{ contact.first_name }}</strong></a>
+        </div>
+        {% if contact.event_set.all %}
+          <div class="ms-3">
+            <div class="small fw-bold">Events:</div>
+            <ul class="list-unstyled mb-1">
+              {% for event in contact.event_set.all %}
+                <li class="mb-1">
+                  <a href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+                  {% if event.eventinstance_set.all %}
+                    <ul class="list-unstyled ms-3 mt-1">
+                      {% for instance in event.eventinstance_set.all %}
+                        {% if instance.date and instance.status == 'n' %}
+                          <li class="small text-muted">{{ instance.date }} — {{ instance.description }}</li>
+                        {% endif %}
+                      {% endfor %}
+                    </ul>
+                  {% endif %}
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
       </li>
       {% endfor %}
     </ul>

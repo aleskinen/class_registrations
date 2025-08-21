@@ -1,19 +1,30 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-    <h1>My events</h1>
+    <h1>My registrations</h1>
 
-    {% if eventinstance_list %}
-    <ul>
+    {% if registration_list %}
+    <ul class="list-unstyled">
 
-      {% for eventinst in eventinstance_list %}
-      <li class="{% if eventinst.is_past %}text-danger{% endif %}">
-        <a href="{% url 'Event-detail' eventinst.event.pk %}">{{ eventinst.event.title }}</a> ({{ eventinst.date }})
+      {% for reg in registration_list %}
+      {% with eventinst=reg.event_instance %}
+      <li class="mb-3 {% if eventinst.is_past %}text-danger{% endif %}">
+        <div>
+          <a href="{% url 'Event-detail' eventinst.event.pk %}"><strong>{{ eventinst.description }}</strong></a>
+          <div class="text-muted small">
+            {{ eventinst.event.title }} — {{ eventinst.date }} — Role: {{ reg.get_role_display }}
+          </div>
+        </div>
+        <form class="d-inline mt-1" method="post" action="{% url 'cancel-eventinstance' eventinst.pk %}?next={% url 'my-events' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-outline-danger btn-sm">Cancel</button>
+        </form>
       </li>
+      {% endwith %}
       {% endfor %}
     </ul>
 
     {% else %}
-      <p>You have no events.</p>
+      <p>You have no registrations.</p>
     {% endif %}
 {% endblock %}

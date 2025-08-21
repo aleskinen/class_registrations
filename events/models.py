@@ -7,6 +7,21 @@ from django.db.models.functions import Lower # Returns lower cased value of fiel
 
 from django.conf import settings
 from datetime import date
+from django.core.exceptions import ValidationError
+
+class ParticipantProfile(models.Model):
+    class Role(models.TextChoices):
+        LEADER = 'L', 'Leader'
+        FOLLOWER = 'F', 'Follower'
+        DOUBLEROLE = 'D', 'DoubleRole'
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
+    role = models.CharField(max_length=1, choices=Role.choices, default=Role.FOLLOWER)
+    approved = models.BooleanField(default=False, help_text='Whether this user is approved by staff')
+
+    def __str__(self):
+        return f'{self.user} profile ({self.get_role_display()})'
+
 
 class EventType(models.Model):
     """Model representing a event type."""
@@ -47,6 +62,11 @@ class Event(models.Model):
     # EventType class has already been defined so we can specify the object above.
     type = models.ManyToManyField(
         EventType, help_text="Select a type for this Event")
+
+    # Capacity constraints per instance for this Event
+    max_leaders = models.PositiveIntegerField(default=0, help_text="Maximum number of Leaders per instance")
+    max_followers = models.PositiveIntegerField(default=0, help_text="Maximum number of Followers per instance")
+    max_participants = models.PositiveIntegerField(default=0, help_text="Total maximum participants per instance")
     
     def __str__(self):
         """String for representing the Model object."""
@@ -71,10 +91,10 @@ class EventInstance(models.Model):
     """Model representing an instance copy of a event."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4,
         help_text="Unique ID for this particular event across whole registry")
-    event = models.ForeignKey('Event', on_delete=models.RESTRICT, null=True)
-    description = models.CharField(max_length=200)
+    event = models.ForeignKey('Event', on_delete=models.CASCADE, null=True)
+    description = models.CharField(max_length=200, blank=True)
     date = models.DateField(null=True, blank=True)
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    # Multiple users can register to an event instance via Registration
 
     @property
     def is_past(self):
@@ -99,8 +119,49 @@ class EventInstance(models.Model):
         ordering = ['date']
     
     def __str__(self):
-        """String for representing the Model object."""
+        """String for representing the Model object.
+        Avoid showing a generated UUID for unsaved inline forms in admin.
+        """
+        # When used in admin inline empty forms, the model may be unsaved but already has a UUID
+        # because of the default. Use a neutral label in that case to avoid confusion.
+        if self._state.adding and not getattr(self, '_loaded_values', None):
+            # Unsaved instance in a formset
+            return 'New event instance'
         return f'{self.id} ({self.event.title if self.event else "No Event"})'
+
+    # Helper methods for capacity checks
+    def leaders_count(self):
+        return self.registrations.filter(role=Registration.Role.LEADER).count()
+
+    def followers_count(self):
+        return self.registrations.filter(role=Registration.Role.FOLLOWER).count()
+
+    def total_count(self):
+        return self.registrations.count()
+
+    def user_registered(self, user):
+        if not user or not user.is_authenticated:
+            return False
+        return self.registrations.filter(user=user).exists()
+
+class Registration(models.Model):
+    class Role(models.TextChoices):
+        LEADER = 'L', 'Leader'
+        FOLLOWER = 'F', 'Follower'
+        DOUBLEROLE = 'D', 'DoubleRole'
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    event_instance = models.ForeignKey(EventInstance, on_delete=models.CASCADE, related_name='registrations')
+    role = models.CharField(max_length=1, choices=Role.choices)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'event_instance'], name='unique_user_eventinstance')
+        ]
+
+    def __str__(self):
+        return f'{self.user} -> {self.event_instance} [{self.get_role_display()}]'
+
 
 class Contact(models.Model):
     """Model representing an Contact."""

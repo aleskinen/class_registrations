@@ -1,0 +1,52 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Create an account</h1>
+  {% if success %}
+    <div class="alert alert-success">
+      Registration submitted. A staff member must approve your account before you can view your registrations. You can still log in and register to events.
+    </div>
+    <p><a class="btn btn-primary" href="{% url 'login' %}">Go to login</a></p>
+  {% else %}
+    {% if errors %}
+      <div class="alert alert-danger">
+        <ul>
+          {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input class="form-control" type="text" name="username" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Email (optional)</label>
+        <input class="form-control" type="email" name="email">
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Role</label>
+        <select class="form-select" name="role">
+          <option value="L">Leader</option>
+          <option value="F" selected>Follower</option>
+          <option value="D">DoubleRole</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input class="form-control" type="password" name="password1" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Confirm Password</label>
+        <input class="form-control" type="password" name="password2" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Captcha: What is {{ captcha_a }} + {{ captcha_b }}?</label>
+        <input class="form-control" type="text" name="captcha_answer" required>
+      </div>
+      <button class="btn btn-primary" type="submit">Register</button>
+      <a class="btn btn-link" href="{% url 'login' %}">Back to login</a>
+    </form>
+  {% endif %}
+{% endblock %}

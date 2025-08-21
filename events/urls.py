@@ -11,4 +11,8 @@ urlpatterns = [
 
 urlpatterns += [
     path('myevents/', views.EventsByUserListView.as_view(), name='my-events'),
+    path('eventinstances/<uuid:pk>/register/', views.register_eventinstance, name='register-eventinstance'),
+    path('eventinstances/<uuid:pk>/cancel/', views.cancel_eventinstance, name='cancel-eventinstance'),
+    path('accounts/register/', views.register, name='register'),
+    path('staff/unapproved-users/', views.UnapprovedUsersView.as_view(), name='unapproved-users'),
 ]

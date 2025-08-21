@@ -1,0 +1,40 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h1>Unapproved users</h1>
+  {% if approval_success %}
+    <div class="alert alert-success">{{ approval_success }}</div>
+  {% endif %}
+
+  {% if object_list %}
+    <form method="post">
+      {% csrf_token %}
+      <div class="mb-2">
+        <button class="btn btn-success btn-sm" type="submit" name="approve_all" value="1">Approve all</button>
+        <button class="btn btn-primary btn-sm" type="submit">Approve selected</button>
+      </div>
+      <table class="table table-sm">
+        <thead>
+          <tr>
+            <th style="width:2rem;"></th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in object_list %}
+            <tr>
+              <td><input type="checkbox" name="ids" value="{{ p.id }}"></td>
+              <td>{{ p.user.username }}</td>
+              <td>{{ p.user.email }}</td>
+              <td>{{ p.get_role_display }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </form>
+  {% else %}
+    <p>No unapproved users.</p>
+  {% endif %}
+{% endblock %}

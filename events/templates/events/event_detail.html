@@ -6,21 +6,63 @@
   <p><strong>Contact:</strong> <a href="">{{ event.contact }}</a></p>
   <!-- author detail link not yet defined -->
   <p><strong>Summary:</strong> {{ event.summary }}</p>
-  <p><strong>Type:</strong> {{ event.display_type.all|join:", " }}</p>
+  <p><strong>Type:</strong> {{ event.display_type }}</p>
 
   <div style="margin-left:20px;margin-top:20px">
     <h4>Events</h4>
 
-    {% for instance in event.eventinstance_set.all %}
-      <hr />
-      <p
-        class="{% if instance.status == 'n' %}text-success{% elif instance.status == 'c' %}text-danger{% else %}text-warning{% endif %}">
-        {{ instance.get_status_display }}
-      </p>
-      {% if instance.status != '1' %}
+    {% if event_instances %}
+      {% for instance in event_instances %}
+        <hr />
+        <p
+          class="{% if instance.status == 'n' %}text-success{% elif instance.status == 'c' %}text-danger{% else %}text-warning{% endif %}">
+          {{ instance.get_status_display }}
+        </p>
         <p><strong>Date:</strong> {{ instance.date }}</p>
-      {% endif %}
-      <p class="text-muted"><strong>Id:</strong> {{ instance.id }}</p>
-    {% endfor %}
+
+        {# Registration counts #}
+        <div class="small text-muted">
+          Leaders: {{ instance.leaders_count }} / {{ instance.event.max_leaders }} | Followers: {{ instance.followers_count }} / {{ instance.event.max_followers }} | Total: {{ instance.total_count }} / {{ instance.event.max_participants }}
+        </div>
+
+        {# User controls #}
+        {% if user.is_authenticated and instance.id in registered_instance_ids %}
+          <p class="text-success"><strong>You are registered for this instance.</strong></p>
+          <form method="post" action="{% url 'cancel-eventinstance' instance.pk %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger btn-sm">Cancel my registration</button>
+          </form>
+        {% else %}
+          {% if instance.status == 'n' and not instance.is_past %}
+            {% if user.is_authenticated %}
+              {% with leaders_count=instance.leaders_count followers_count=instance.followers_count total_count=instance.total_count maxL=instance.event.max_leaders maxF=instance.event.max_followers maxT=instance.event.max_participants %}
+                {% with can_leader=1 can_follower=1 can_double=1 %}
+                  {% if maxL and leaders_count >= maxL %}{% with can_leader=0 %}{% endwith %}{% endif %}
+                  {% if maxF and followers_count >= maxF %}{% with can_follower=0 %}{% endwith %}{% endif %}
+                  {% if not maxT or maxT <= maxL|add:maxF or total_count >= maxT %}{% with can_double=0 %}{% endwith %}{% endif %}
+                  <form method="post" action="{% url 'register-eventinstance' instance.pk %}">
+                    {% csrf_token %}
+                    <div class="d-flex align-items-center gap-2">
+                      <select name="role" class="form-select form-select-sm" style="width:auto;">
+                        {% if can_leader %}<option value="L">Leader</option>{% endif %}
+                        {% if can_follower %}<option value="F">Follower</option>{% endif %}
+                        {% if can_double %}<option value="D">DoubleRole</option>{% endif %}
+                      </select>
+                      <button type="submit" class="btn btn-primary btn-sm" {% if not can_leader and not can_follower and not can_double %}disabled{% endif %}>Register</button>
+                    </div>
+                  </form>
+                {% endwith %}
+              {% endwith %}
+            {% else %}
+              <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary btn-sm">Login to register</a>
+            {% endif %}
+          {% else %}
+            <p class="text-muted">Registration not available.</p>
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted">No scheduled instances for this event.</p>
+    {% endif %}
   </div>
 {% endblock %}

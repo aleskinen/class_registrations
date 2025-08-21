@@ -15,6 +15,15 @@
         {% for event in contact.event_set.all %}
           <li>
             <a href="{{ event.get_absolute_url }}">{{ event.title }}</a>
+            {% if event.eventinstance_set.all %}
+              <ul style="margin-top:6px;">
+                {% for instance in event.eventinstance_set.all %}
+                  {% if instance.date and instance.status == 'n' %}
+                    <li class="text-muted">{{ instance.date }} — {{ instance.description }}</li>
+                  {% endif %}
+                {% endfor %}
+              </ul>
+            {% endif %}
           </li>
         {% endfor %}
       </ul>
